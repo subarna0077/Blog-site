@@ -1,4 +1,6 @@
+const slugify = require('slugify')
 const mongoose = require('mongoose')
+
 
 const BlogSchema = mongoose.Schema({
     title: {
@@ -8,8 +10,8 @@ const BlogSchema = mongoose.Schema({
     },
     content: {
         type: String,
-        required: [true, 'Content should be atleast 200 characters long'],
-        minlength: 5
+        required: [true, 'Content should be atleast 50 characters long'],
+        minlength: 50
     },
     author: {
         type: String,
@@ -31,5 +33,15 @@ const BlogSchema = mongoose.Schema({
 
     }
 })
+
+BlogSchema.pre('save', function(next){
+    if(this.title){
+        this.slug = slugify(this.title, {lower: true, strict:true})
+    }
+    next();
+
+})
+
+
 
 module.exports = mongoose.model('Blog', BlogSchema)

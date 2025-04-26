@@ -1,18 +1,33 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const UserRoutes = require('./routes/User');
+const BlogRoutes = require('./routes/Blog');
+const authMiddleware = require('./middleware/auth');
+const cors = require('cors');
 require('dotenv').config();
-const express = require("express");
-const connectDB = require("./db/connectdb");
-const BlogRoutes = require("./routes/Blog");
+
 const app = express();
-connectDB();
+app.use(cors());
+app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
-
-app.get("/", (req, res) => {
-  res.send("Hello world");
+// Test route
+app.get('/', (req, res) => {
+  res.json({ msg: 'Hello world' });
 });
-app.use(express.json())
-app.use("/api/blogs", BlogRoutes);
 
-app.listen(PORT, () => {
-  console.log("App started");
-});
+// Setting routes
+app.use('/api', UserRoutes);
+app.use('/api/blogs', authMiddleware, BlogRoutes);
+
+// Connect to MongoDB first, then start the server
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('✅ MongoDB connected successfully');
+    // Start the server only after DB connection is successful
+    app.listen(5000, () => {
+      console.log('🚀 Server is running on port 5000');
+    });
+  })
+  .catch(err => {
+    console.error('❌ Failed to connect to MongoDB:', err);
+  });
